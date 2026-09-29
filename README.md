@@ -4,7 +4,7 @@ Protótipo navegável da Matsumura com as páginas do projeto Street Side. O cat
 
 ## Visualizar
 
-**Amostra online:** https://vcspc.github.io/catalogo-matsumura/
+**Amostra online:** https://vcspc.github.io/catalogo-matsumura-2/
 
 Abra `index.html` em um navegador ou sirva a pasta localmente:
 
