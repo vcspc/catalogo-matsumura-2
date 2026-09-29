@@ -1,0 +1,19 @@
+# Publique somente os arquivos necessários para executar o protótipo.
+/*
+!/.gitignore
+!/README.md
+!/index.html
+!/catalog.css
+!/catalog.js
+!/shop.css
+!/shop.js
+!/assets/
+/assets/*
+!/assets/blazer.webp
+!/assets/bolsa.webp
+!/assets/brincos.webp
+!/assets/calca.webp
+!/assets/campanha.webp
+!/assets/logo-matsumura.png
+!/assets/scarpin.webp
+!/assets/vestido.webp
