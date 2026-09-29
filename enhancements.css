@@ -1,0 +1,54 @@
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+.promo-banner{min-height:76px;padding:13px max(32px,calc((100vw - 1240px)/2));display:flex;align-items:center;justify-content:space-between;gap:24px;background:radial-gradient(circle at 12% 20%,#a96b7e55,transparent 32%),linear-gradient(105deg,#401320,#70364b 58%,#421321);color:#fff;position:relative;overflow:hidden}
+.promo-banner:after{content:"✦";position:absolute;right:23%;top:-41px;font-size:130px;color:#ffffff12;pointer-events:none}
+.promo-kicker{position:relative;z-index:1;flex:none;padding:8px 11px;border:1px solid #e8bbc87d;font-size:9px;font-weight:700;letter-spacing:.18em}
+.promo-copy{position:relative;z-index:1;flex:1;font-size:13px;line-height:1.4;letter-spacing:.01em}
+.promo-copy strong{display:block;font-family:"Playfair Display",Georgia,serif;font-size:22px;font-weight:400;line-height:1.15}
+.promo-link{position:relative;z-index:1;display:inline-flex;align-items:center;gap:8px;flex:none;border-bottom:1px solid #f2d8dc;padding-bottom:5px;font-size:11px;font-weight:700;white-space:nowrap}
+.promo-link svg{width:15px;height:15px}
+.promo-banner small{position:relative;z-index:1;font-size:9px;color:#f2d8dccc;white-space:nowrap}
+
+.card-bag-button{width:calc(100% - 28px);min-height:40px;margin:14px 14px 0;border:1px solid var(--wine);background:var(--wine);color:#fff;display:flex;align-items:center;justify-content:center;gap:9px;font-size:11px;font-weight:700;transition:background .2s,transform .2s}
+.card-bag-button:hover,.card-bag-button:focus-visible{background:var(--wine-light);transform:translateY(-1px)}
+.card-bag-button svg{width:16px;height:16px}
+.product-text{padding-top:14px}
+.list-view .product-card{grid-template-rows:190px auto}
+.list-view .product-photo{grid-column:1;grid-row:1;height:190px}
+.list-view .card-bag-button{grid-column:1;grid-row:2;width:calc(100% - 20px);margin:10px;min-height:39px}
+.list-view .product-text{grid-column:2;grid-row:1/span 2}
+
+.shipping-panel{margin-top:28px;padding:23px;border:1px solid var(--line);background:var(--cream)}
+.shipping-panel h2{font-family:"Playfair Display",Georgia,serif;font-size:24px;font-weight:400;margin:0 0 5px;color:var(--wine)}
+.shipping-panel>p{font-size:12px;color:var(--muted);margin:0 0 17px}
+.shipping-row{display:flex;gap:8px}
+.shipping-row input{width:min(190px,100%);min-width:0;height:43px;padding:0 12px;border:1px solid var(--line);background:#fff;outline-color:var(--wine-light)}
+.shipping-row button{height:43px;padding:0 17px;background:var(--wine);border:1px solid var(--wine);color:#fff;font-size:11px;font-weight:700}
+.shipping-row button:hover{background:var(--wine-light)}
+.shipping-result{margin-top:14px}
+.shipping-hint{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
+.shipping-quote{display:grid;grid-template-columns:1fr auto;gap:5px 15px;padding:13px 14px;background:#fff;border-left:3px solid var(--wine);font-size:11px;color:#5c4b4d}
+.shipping-quote strong{font-size:13px;color:var(--wine)}
+.shipping-quote small{grid-column:1/-1;color:var(--muted);font-size:10px}
+.shipping-panel>small,.checkout-shipping>small{display:block;margin-top:12px;font-size:10px;line-height:1.5;color:#8e7d78}
+.checkout-shipping{padding:16px 0 23px;border-bottom:1px solid var(--line)}
+.checkout-shipping .outline-button{min-height:39px}
+.checkout-shipping .shipping-result{margin-top:12px}
+.summary-box #checkout-shipping-price{white-space:normal}
+
+.about-hero{min-height:485px;background:linear-gradient(90deg,#2a0d18eb 0%,#38111dca 43%,#38111d50 100%),url("assets/frente_loja.png") center 48%/cover}
+.about-hero:after{display:none}
+.store-gallery{padding-bottom:105px}
+.store-gallery-heading{margin-bottom:30px;max-width:650px}
+.store-gallery-heading h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(35px,4vw,49px);font-weight:400;letter-spacing:-.035em;line-height:1.15;margin:0 0 11px;color:var(--wine)}
+.store-gallery-heading p{font-size:13px;line-height:1.7;color:var(--muted);margin:0}
+.store-gallery-grid{display:grid;grid-template-columns:1.28fr 1fr;grid-template-rows:225px 225px;gap:17px}
+.store-gallery-grid figure{position:relative;overflow:hidden;margin:0;background:#e6d9d0}
+.store-gallery-grid figure:after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(transparent,#2a0d18ba);pointer-events:none}
+.store-gallery-grid img{width:100%;height:100%;object-fit:cover;object-position:center;transform:scale(1.12)}
+.store-gallery-feature{grid-row:span 2}
+.store-gallery-grid figcaption{position:absolute;left:22px;bottom:18px;z-index:1;color:#fff;font-family:"Playfair Display",Georgia,serif;font-size:23px;line-height:1.2;text-shadow:0 1px 8px #0005}
+
+@media(max-width:1000px){.promo-banner{padding-left:21px;padding-right:21px}.promo-banner small{display:none}.store-gallery-grid{grid-template-rows:190px 190px}}
+@media(max-width:720px){.promo-banner{min-height:91px;padding:13px 17px;gap:12px;flex-wrap:wrap}.promo-kicker{font-size:8px;padding:6px 8px}.promo-copy{flex-basis:calc(100% - 120px);font-size:10px}.promo-copy strong{font-size:17px}.promo-link{margin-left:auto;font-size:10px}.card-bag-button{width:calc(100% - 20px);margin:10px 10px 0;min-height:38px;font-size:10px}.card-bag-button svg{width:14px;height:14px}.list-view .product-card{grid-template-rows:150px auto}.list-view .product-photo{height:150px}.list-view .card-bag-button{font-size:9px;gap:4px}.shipping-panel{padding:18px}.store-gallery{padding-bottom:70px}.store-gallery-grid{grid-template-columns:1fr;grid-template-rows:auto;gap:13px}.store-gallery-grid figure,.store-gallery-feature{grid-row:auto;height:235px}.store-gallery-grid .store-gallery-feature{height:310px}.store-gallery-grid figcaption{font-size:21px}}
+@media(max-width:420px){.promo-kicker{display:none}.promo-copy{flex-basis:100%}.promo-link{margin-left:0}.list-view .product-card{grid-template-rows:135px auto}.list-view .product-photo{height:135px}.list-view .card-bag-button span{font-size:8px}.store-gallery-grid .store-gallery-feature{height:260px}}

@@ -7,6 +7,7 @@
 !/catalog.js
 !/shop.css
 !/shop.js
+!/enhancements.css
 !/assets/
 /assets/*
 !/assets/blazer.webp
@@ -17,3 +18,7 @@
 !/assets/logo-matsumura.png
 !/assets/scarpin.webp
 !/assets/vestido.webp
+!/assets/caixa.png
+!/assets/frente_loja.png
+!/assets/interior.png
+!/assets/setor_masculino.png

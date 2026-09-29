@@ -19,7 +19,9 @@ Depois acesse `http://localhost:4173`.
 - Catálogo como página inicial, sem seção de início.
 - Filtros por nome, categoria, faixa de preço, tamanho, cor e destaque.
 - Ordenação e alternância entre grade e lista.
+- Banner ilustrativo de promoção e botão de adicionar à sacola nos cartões de produto.
 - Detalhe de produto, favoritos, carrinho, checkout, pedidos e estados de pagamento.
+- Simulação de frete por CEP no produto e no checkout, com total demonstrativo atualizado.
 - Login, cadastro, recuperação de senha, perfil e chamados de atendimento.
 - Central de ajuda, trocas, privacidade e página “Nossa história”.
 - Painel administrativo com visão geral, produtos, categorias, pedidos e chamados.
@@ -34,4 +36,6 @@ Não há banco de dados, API, autenticação real nem pagamento. Os fluxos usam 
 - `shop.css`: estilos das páginas de compra, conta, suporte e administração.
 - `catalog.js`: catálogo, produtos, identidade visual e filtros.
 - `shop.js`: páginas adicionais e interações locais.
-- `assets/`: logo extraído do PDF fornecido e fotografias ilustrativas geradas para o protótipo.
+- `assets/`: identidade da loja, fotografias ilustrativas dos produtos e fotos reais da Matsumura na página “Nossa história”.
+
+O frete é inteiramente fictício: CEPs iniciados em `68` mostram uma estimativa para o Pará, outros CEPs válidos mostram outra estimativa, e pedidos demonstrativos a partir de R$ 399 recebem frete ilustrativo grátis. Não há consulta de CEP ou serviço logístico.

@@ -13,8 +13,22 @@ function saveShop(){
 }
 window.cartCount=()=>shopState.cart.reduce((sum,line)=>sum+line.qty,0);
 const pById=id=>items.find(p=>p.id===id);
-const lineTotal=line=>(pById(line.id)?.price||0)*line.qty;
-const cartTotal=()=>shopState.cart.reduce((sum,line)=>sum+lineTotal(line),0);
+const roundMoney=value=>Math.round((value+Number.EPSILON)*100)/100;
+const lineTotal=line=>roundMoney((pById(line.id)?.price||0)*line.qty);
+const cartTotal=()=>roundMoney(shopState.cart.reduce((sum,line)=>sum+lineTotal(line),0));
+const shippingState={zip:"",calculated:false};
+const zipDigits=value=>String(value??"").replace(/\D/g,"").slice(0,8);
+const formatZip=value=>zipDigits(value).replace(/^(\d{5})(\d)/,"$1-$2");
+function calculateDemoShipping(zip,subtotal){
+  if(!/^[0-9]{5}-?[0-9]{3}$/.test(String(zip??"").trim()))return null;
+  const digits=zipDigits(zip);
+  const inPara=digits.startsWith("68");
+  return {zip:formatZip(digits),region:inPara?"Pará":"demais regiões",price:subtotal>=399?0:inPara?19.9:34.9,days:inPara?"3 a 5 dias úteis":"7 a 12 dias úteis"};
+}
+function shippingQuoteFor(subtotal){return shippingState.calculated?calculateDemoShipping(shippingState.zip,subtotal):null}
+window.shippingQuoteFor=shippingQuoteFor;
+window.shippingZip=()=>shippingState.zip;
+window.shippingResultHtml=(quote,message="Digite um CEP para consultar o frete ilustrativo.")=>quote?`<div class="shipping-quote"><span>Entrega para ${quote.region}</span><strong>${quote.price===0?"Grátis":money(quote.price)}</strong><small>Prazo estimado: ${quote.days}</small></div>`:`<p class="shipping-hint">${message}</p>`;
 const safe=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const imgFor=(id)=>{const p=pById(id);return p?image(p.image,p.name):""};
 const demoNote='<div class="demo-note">Demonstração local: dados, pedidos e pagamentos desta tela são fictícios.</div>';
@@ -33,7 +47,8 @@ function favPage(){
 }
 function cartPage(){
   const lines=shopState.cart.filter(line=>pById(line.id));
-  const body=lines.length?`<div class="commerce-layout"><div class="commerce-list">${lines.map(line=>{const p=pById(line.id);return `<article class="cart-line">${imgFor(line.id)}<div class="cart-line-main"><span class="eyebrow">${p.category}</span><a href="#/produto/${p.id}">${p.name}</a><small>Tamanho: ${line.size}</small><strong>${money(p.price)}</strong><div class="qty-control"><button data-shop="qty" data-id="${p.id}" data-size="${line.size}" data-delta="-1" aria-label="Diminuir quantidade">−</button><span>${line.qty}</span><button data-shop="qty" data-id="${p.id}" data-size="${line.size}" data-delta="1" aria-label="Aumentar quantidade">+</button></div></div><button class="text-button" data-shop="remove" data-id="${p.id}" data-size="${line.size}">Remover</button></article>`}).join("")}</div><aside class="summary-box"><h2>Resumo do pedido</h2><div><span>Subtotal</span><strong>${money(cartTotal())}</strong></div><div><span>Entrega</span><span>A combinar</span></div><div class="summary-total"><span>Total</span><strong>${money(cartTotal())}</strong></div><a href="#/checkout" class="return-button full">Finalizar compra</a><small>Fluxo ilustrativo. Nenhuma cobrança será feita.</small></aside></div>`:empty("Seu carrinho está vazio","Escolha uma peça para experimentar o fluxo de compra.","#/","Ver produtos");
+  const quote=shippingQuoteFor(cartTotal());
+  const body=lines.length?`<div class="commerce-layout"><div class="commerce-list">${lines.map(line=>{const p=pById(line.id);return `<article class="cart-line">${imgFor(line.id)}<div class="cart-line-main"><span class="eyebrow">${p.category}</span><a href="#/produto/${p.id}">${p.name}</a><small>Tamanho: ${line.size}</small><strong>${money(p.price)}</strong><div class="qty-control"><button data-shop="qty" data-id="${p.id}" data-size="${line.size}" data-delta="-1" aria-label="Diminuir quantidade">−</button><span>${line.qty}</span><button data-shop="qty" data-id="${p.id}" data-size="${line.size}" data-delta="1" aria-label="Aumentar quantidade">+</button></div></div><button class="text-button" data-shop="remove" data-id="${p.id}" data-size="${line.size}">Remover</button></article>`}).join("")}</div><aside class="summary-box"><h2>Resumo do pedido</h2><div><span>Subtotal</span><strong>${money(cartTotal())}</strong></div><div><span>Frete</span><span>${quote?(quote.price===0?"Grátis":money(quote.price)):"Calcule no checkout"}</span></div><div class="summary-total"><span>Total</span><strong>${money(cartTotal()+(quote?.price||0))}</strong></div><a href="#/checkout" class="return-button full">Finalizar compra</a><small>Fluxo ilustrativo. Nenhuma cobrança será feita.</small></aside></div>`:empty("Seu carrinho está vazio","Escolha uma peça para experimentar o fluxo de compra.","#/","Ver produtos");
   return page("Carrinho de Compras",body,`${window.cartCount()} ${window.cartCount()===1?"item":"itens"} no carrinho`,"SUA SACOLA");
 }
 function field(label,name,type="text",value="",required=true){
@@ -42,7 +57,9 @@ function field(label,name,type="text",value="",required=true){
 function checkoutPage(){
   if(!shopState.cart.length)return page("Finalizar Compra",empty("Carrinho vazio","Adicione produtos antes de finalizar.","#/","Ver catálogo"),"Confira seus dados e a forma de entrega.","CHECKOUT");
   const u=shopState.user||{};
-  const body=`<div class="commerce-layout"><form id="checkout-form" class="form-panel"><h2>Dados pessoais</h2><div class="form-grid">${field("Nome completo","name","text",u.name||"")}${field("E-mail","email","email",u.email||"")}${field("Telefone","phone","tel",u.phone||"")}${field("CPF (exemplo)","document","text","",false)}</div><h2>Endereço de entrega</h2><div class="form-grid">${field("CEP","zip")}${field("Cidade","city","text",u.city||"")}${field("Endereço","address")}${field("Número","number")}</div><h2>Forma de pagamento</h2><label class="choice"><input type="radio" name="payment" value="pix" checked> PIX demonstrativo</label><label class="choice"><input type="radio" name="payment" value="cartao"> Cartão demonstrativo</label><label class="choice"><input type="radio" name="payment" value="boleto"> Boleto demonstrativo</label><button class="return-button" type="submit">Simular pedido</button><p class="fine-print">Os dados digitados nesta etapa não são enviados a nenhum serviço.</p></form><aside class="summary-box"><h2>Seu pedido</h2>${shopState.cart.map(line=>`<div><span>${line.qty}× ${pById(line.id)?.name}</span><strong>${money(lineTotal(line))}</strong></div>`).join("")}<div class="summary-total"><span>Total ilustrativo</span><strong>${money(cartTotal())}</strong></div>${demoNote}</aside></div>`;
+  const subtotal=cartTotal();
+  const quote=shippingQuoteFor(subtotal);
+  const body=`<div class="commerce-layout"><form id="checkout-form" class="form-panel"><h2>Dados pessoais</h2><div class="form-grid">${field("Nome completo","name","text",u.name||"")}${field("E-mail","email","email",u.email||"")}${field("Telefone","phone","tel",u.phone||"")}${field("CPF (exemplo)","document","text","",false)}</div><h2>Endereço de entrega</h2><div class="form-grid"><label class="form-field"><span>CEP</span><input id="checkout-zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" pattern="[0-9]{5}-?[0-9]{3}" maxlength="9" placeholder="00000-000" value="${safe(shippingState.zip)}" required></label>${field("Cidade","city","text",u.city||"")}${field("Endereço","address")}${field("Número","number")}</div><div class="checkout-shipping"><button type="button" class="outline-button" data-shop="shipping-checkout">Calcular frete</button><div id="checkout-shipping-result" class="shipping-result" aria-live="polite">${window.shippingResultHtml(quote)}</div><small>Frete de demonstração. Valores e prazos são ilustrativos.</small></div><h2>Forma de pagamento</h2><label class="choice"><input type="radio" name="payment" value="pix" checked> PIX demonstrativo</label><label class="choice"><input type="radio" name="payment" value="cartao"> Cartão demonstrativo</label><label class="choice"><input type="radio" name="payment" value="boleto"> Boleto demonstrativo</label><button class="return-button" type="submit">Simular pedido</button><p class="fine-print">Os dados digitados nesta etapa não são enviados a nenhum serviço.</p></form><aside class="summary-box"><h2>Seu pedido</h2>${shopState.cart.map(line=>`<div><span>${line.qty}× ${pById(line.id)?.name}</span><strong>${money(lineTotal(line))}</strong></div>`).join("")}<div><span>Subtotal</span><strong>${money(subtotal)}</strong></div><div><span>Frete</span><strong id="checkout-shipping-price">${quote?(quote.price===0?"Grátis":money(quote.price)):"Não calculado"}</strong></div><div class="summary-total"><span>Total ilustrativo</span><strong id="checkout-total">${money(subtotal+(quote?.price||0))}</strong></div>${demoNote}</aside></div>`;
   return page("Finalizar Compra",body,"Revise as peças e percorra o checkout de demonstração.","CHECKOUT");
 }
 function orderCard(order){
@@ -54,7 +71,7 @@ function ordersPage(){
 function orderDetail(id){
   const order=shopState.orders.find(o=>o.id===id);
   if(!order)return page("Pedido não encontrado",empty("Pedido não encontrado","Volte à lista de pedidos.","#/pedidos","Meus pedidos"));
-  return page(`Pedido ${order.id}`,`<div class="commerce-layout"><div class="stack"><section class="info-card"><h2>Status do pedido</h2><span class="status-pill">${order.status}</span><p>Criado em ${order.date}. Acompanhamento ilustrativo.</p></section><section class="info-card"><h2>Produtos</h2>${order.lines.map(line=>`<div class="order-product">${imgFor(line.id)}<div><strong>${pById(line.id)?.name}</strong><small>Tamanho: ${line.size} · Quantidade: ${line.qty}</small></div><strong>${money(lineTotal(line))}</strong></div>`).join("")}</section><a href="#/perfil/chamados" class="outline-button">Precisa de ajuda com o pedido?</a></div><aside class="summary-box"><h2>Resumo</h2><div class="summary-total"><span>Total</span><strong>${money(order.total)}</strong></div>${demoNote}</aside></div>`,"Detalhes e acompanhamento do pedido.","MINHA CONTA");
+  return page(`Pedido ${order.id}`,`<div class="commerce-layout"><div class="stack"><section class="info-card"><h2>Status do pedido</h2><span class="status-pill">${order.status}</span><p>Criado em ${order.date}. Acompanhamento ilustrativo.</p></section><section class="info-card"><h2>Produtos</h2>${order.lines.map(line=>`<div class="order-product">${imgFor(line.id)}<div><strong>${pById(line.id)?.name}</strong><small>Tamanho: ${line.size} · Quantidade: ${line.qty}</small></div><strong>${money(lineTotal(line))}</strong></div>`).join("")}</section><a href="#/perfil/chamados" class="outline-button">Precisa de ajuda com o pedido?</a></div><aside class="summary-box"><h2>Resumo</h2>${order.shipping!==undefined?`<div><span>Subtotal</span><strong>${money(order.subtotal??order.total-order.shipping)}</strong></div><div><span>Frete</span><strong>${order.shipping===0?"Grátis":money(order.shipping)}</strong></div>`:""}<div class="summary-total"><span>Total</span><strong>${money(order.total)}</strong></div>${demoNote}</aside></div>`,"Detalhes e acompanhamento do pedido.","MINHA CONTA");
 }
 function profilePage(){
   const u=shopState.user;
@@ -155,25 +172,60 @@ window.extraPage=function(current){
 };
 function goDemo(route){location.hash=route;if(decodeURIComponent(location.hash.slice(1))===route)render()}
 function flash(message){document.querySelector(".flash")?.remove();const el=document.createElement("div");el.className="flash";el.textContent=message;document.body.append(el);setTimeout(()=>el.remove(),2500)}
+function updateCheckoutShipping(showError=false){
+  const input=document.getElementById("checkout-zip");
+  if(!input)return null;
+  const quote=calculateDemoShipping(input.value,cartTotal());
+  shippingState.calculated=!!quote;
+  shippingState.zip=quote?.zip||"";
+  if(quote)input.value=quote.zip;
+  const result=document.getElementById("checkout-shipping-result");
+  if(result)result.innerHTML=window.shippingResultHtml(quote,showError?"Informe um CEP válido com 8 dígitos.":"Digite seu CEP para calcular o frete ilustrativo.");
+  const price=document.getElementById("checkout-shipping-price");
+  if(price)price.textContent=quote?(quote.price===0?"Grátis":money(quote.price)):"Não calculado";
+  const total=document.getElementById("checkout-total");
+  if(total)total.textContent=money(cartTotal()+(quote?.price||0));
+  return quote;
+}
 document.addEventListener("click",event=>{
   const button=event.target.closest("[data-shop]");
   if(!button)return;
   const action=button.dataset.shop,id=button.dataset.id,size=button.dataset.size;
   if(action==="favorite"){shopState.favorites=shopState.favorites.includes(id)?shopState.favorites.filter(x=>x!==id):[...shopState.favorites,id];saveShop();render(false);flash("Favoritos atualizados")}
-  if(action==="add"){const chosen=document.getElementById("product-size")?.value||pById(id)?.sizes[0]||"Único";const line=shopState.cart.find(x=>x.id===id&&x.size===chosen);if(line)line.qty++;else shopState.cart.push({id,size:chosen,qty:1});saveShop();render(false);flash("Produto adicionado ao carrinho")}
+  if(action==="add"){const chosen=document.getElementById("product-size")?.value||pById(id)?.sizes[0]||"Único";const line=shopState.cart.find(x=>x.id===id&&x.size===chosen);if(line)line.qty++;else shopState.cart.push({id,size:chosen,qty:1});saveShop();render(false);flash(`Produto adicionado à sacola${chosen==="Único"?"":" · tamanho "+chosen}`)}
+  if(action==="shipping-checkout")updateCheckoutShipping(true);
   if(action==="qty"){const line=shopState.cart.find(x=>x.id===id&&x.size===size);if(line)line.qty+=Number(button.dataset.delta);shopState.cart=shopState.cart.filter(x=>x.qty>0);saveShop();render(false)}
   if(action==="remove"){shopState.cart=shopState.cart.filter(x=>!(x.id===id&&x.size===size));saveShop();render(false)}
   if(action==="logout"){shopState.user=null;saveShop();goDemo("/login")}
+});
+document.addEventListener("input",event=>{
+  if(event.target.id==="checkout-zip")updateCheckoutShipping(false);
 });
 document.addEventListener("change",event=>{
   if(event.target.dataset.shop==="order-status"){const order=shopState.orders.find(x=>x.id===event.target.dataset.id);if(order)order.status=event.target.value;saveShop();flash("Status atualizado")}
 });
 document.addEventListener("submit",event=>{
   const form=event.target;
-  if(!["checkout-form","auth-form","profile-form","ticket-form","message-form","admin-product-form","admin-category-form"].includes(form.id))return;
+  if(!["product-shipping-form","checkout-form","auth-form","profile-form","ticket-form","message-form","admin-product-form","admin-category-form"].includes(form.id))return;
   event.preventDefault();
   const data=Object.fromEntries(new FormData(form));
-  if(form.id==="checkout-form"){const payment=data.payment;const order={id:"MT-"+Math.floor(1000+Math.random()*8999),date:new Date().toLocaleDateString("pt-BR"),status:payment==="boleto"?"Pendente":"Pago",lines:shopState.cart.map(x=>({...x})),total:cartTotal()};shopState.orders.unshift(order);shopState.cart=[];saveShop();goDemo(payment==="boleto"?"/pagamento/pendente":"/pedido-confirmado")}
+  if(form.id==="product-shipping-form"){
+    const quote=calculateDemoShipping(data.zip,pById(form.dataset.id)?.price||0);
+    shippingState.calculated=!!quote;
+    shippingState.zip=quote?.zip||"";
+    document.getElementById("product-shipping-result").innerHTML=window.shippingResultHtml(quote,"Informe um CEP válido com 8 dígitos.");
+    if(quote)form.querySelector("input[name=zip]").value=quote.zip;
+  }
+  if(form.id==="checkout-form"){
+    const quote=calculateDemoShipping(data.zip,cartTotal());
+    if(!quote){updateCheckoutShipping(true);form.querySelector("input[name=zip]").focus();return}
+    shippingState.calculated=true;
+    shippingState.zip=quote.zip;
+    const payment=data.payment;
+    const subtotal=cartTotal();
+    const order={id:"MT-"+Math.floor(1000+Math.random()*8999),date:new Date().toLocaleDateString("pt-BR"),status:payment==="boleto"?"Pendente":"Pago",lines:shopState.cart.map(x=>({...x})),subtotal,shipping:quote.price,zip:quote.zip,total:roundMoney(subtotal+quote.price)};
+    shopState.orders.unshift(order);shopState.cart=[];saveShop();goDemo(payment==="boleto"?"/pagamento/pendente":"/pedido-confirmado");
+  }
   if(form.id==="auth-form"){const kind=form.dataset.kind;if(kind==="login"){shopState.user=shopState.user||{name:data.email.split("@")[0],email:data.email,phone:"",city:""};saveShop();goDemo("/perfil")}if(kind==="cadastro"){shopState.user={name:data.name,email:data.email,phone:data.phone||"",city:""};saveShop();goDemo("/perfil")}if(kind==="esqueci-senha"){goDemo("/redefinir-senha")}if(kind==="redefinir-senha"){if(data.password!==data.confirm){flash("As senhas não conferem");return}flash("Senha de demonstração atualizada");goDemo("/login")}}
   if(form.id==="profile-form"){shopState.user={...shopState.user,...data};saveShop();render(false);flash("Perfil atualizado")}
   if(form.id==="ticket-form"){const ticket={id:"CH-"+Math.floor(200+Math.random()*800),subject:data.subject,status:"Aberto",date:new Date().toLocaleDateString("pt-BR"),messages:[{from:"Cliente",text:data.message}]};shopState.tickets.unshift(ticket);saveShop();goDemo("/perfil/chamados/"+ticket.id)}
